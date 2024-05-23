@@ -47,7 +47,7 @@ export default class MyPlugin extends Plugin {
 
 		this.addRibbonIcon(
 			"calendar-heart",
-			"تبدیل تاریخ فعلی به تاریخ شمسی",
+			"Create new jalali daily note",
 			async (evt: MouseEvent) => {
 				// Called when the user clicks the icon.
 				await createNewDailyNote(this);
