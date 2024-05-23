@@ -48,8 +48,8 @@ export default class MyPlugin extends Plugin {
 					targetPath
 				);
 				// open the file
-				// this.app.workspace.openLinkText(targetPath, "", true);
-				// return;
+				this.app.workspace.openLinkText(targetPath, "", true);
+				return;
 			}
 		);
 		// Perform additional things with the ribbon
