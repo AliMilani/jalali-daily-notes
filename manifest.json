@@ -1,0 +1,11 @@
+{
+	"id": "jalali-daily-notes",
+	"name": "Jalali Daily Notes",
+	"version": "0.0.1",
+	"minAppVersion": "0.15.0",
+	"description": "Converts daily notes to Jalali calendar",
+	"author": "Ali Milani",
+	"authorUrl": "https://obsidian.md",
+	"fundingUrl": "https://obsidian.md/pricing",
+	"isDesktopOnly": false
+}
