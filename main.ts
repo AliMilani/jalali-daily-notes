@@ -12,8 +12,6 @@ import {
 
 import moment from "moment-jalaali";
 
-// Remember to rename these classes and interfaces!
-
 interface PluginSettings {
 	dailyNotePath: string;
 	templateFilePath: string;
@@ -30,12 +28,17 @@ const createNewDailyNote = async (plugin: MyPlugin) => {
 		new Notice("File already exists");
 		return;
 	}
-	// plugin.app.vault.rename(file, targetPath);
-	await plugin.app.vault.adapter.copy(
-		plugin.settings.templateFilePath,
-		targetPath
-	);
-	// open the file
+
+	const templatePath = plugin.settings.templateFilePath;
+	if (
+		!templatePath ||
+		!plugin.app.vault.getAbstractFileByPath(templatePath)
+	) {
+		new Notice("Template file does not exist");
+		return;
+	}
+
+	await plugin.app.vault.adapter.copy(templatePath, targetPath);
 	plugin.app.workspace.openLinkText(targetPath, "", true);
 	return;
 };
@@ -49,7 +52,6 @@ export default class MyPlugin extends Plugin {
 			"calendar-heart",
 			"Create new jalali daily note",
 			async (evt: MouseEvent) => {
-				// Called when the user clicks the icon.
 				await createNewDailyNote(this);
 			}
 		);
@@ -96,7 +98,6 @@ class defaultSettingTab extends PluginSettingTab {
 		new Setting(containerEl)
 			.setName("daily note folder path")
 			.setDesc("Enter the path to your daily notes directory")
-			// automatic detect folder
 			.addText((text) =>
 				text
 					.setPlaceholder(
