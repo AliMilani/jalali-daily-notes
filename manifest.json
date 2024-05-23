@@ -5,7 +5,6 @@
 	"minAppVersion": "0.15.0",
 	"description": "Converts daily notes to Jalali calendar",
 	"author": "Ali Milani",
-	"authorUrl": "https://obsidian.md",
-	"fundingUrl": "https://obsidian.md/pricing",
+	"authorUrl": "https://github.com/aliMilani",
 	"isDesktopOnly": false
 }
