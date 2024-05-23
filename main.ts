@@ -34,16 +34,8 @@ export default class MyPlugin extends Plugin {
 		const ribbonIconEl = this.addRibbonIcon(
 			"calendar-heart",
 			"تبدیل تاریخ فعلی به تاریخ شمسی",
-			(evt: MouseEvent) => {
+			async (evt: MouseEvent) => {
 				// Called when the user clicks the icon.
-				const toDayGregorian = moment().format("YYYY-MM-DD");
-				const file = this.app.vault.getAbstractFileByPath(
-					`${this.settings.dailyNotePath}/${toDayGregorian}.md`
-				);
-				if (!file) {
-					new Notice("File not found");
-					return;
-				}
 				const todayJalali = moment().format("jYYYY-jMM-jDD");
 				const targetPath = `${this.settings.dailyNotePath}/${todayJalali}.md`;
 				if (this.app.vault.getAbstractFileByPath(targetPath)) {
@@ -51,8 +43,13 @@ export default class MyPlugin extends Plugin {
 					return;
 				}
 				// this.app.vault.rename(file, targetPath);
-
-				this.app.vault.create(targetPath, "");
+				await this.app.vault.adapter.copy(
+					this.settings.templateFilePath,
+					targetPath
+				);
+				// open the file
+				// this.app.workspace.openLinkText(targetPath, "", true);
+				// return;
 			}
 		);
 		// Perform additional things with the ribbon
@@ -171,6 +168,18 @@ class defaultSettingTab extends PluginSettingTab {
 					.setValue(this.plugin.settings.dailyNotePath)
 					.onChange(async (value) => {
 						this.plugin.settings.dailyNotePath = value;
+						await this.plugin.saveSettings();
+					})
+			);
+		new Setting(containerEl)
+			.setName("template path")
+			.setDesc("Enter template file path")
+			.addText((text) =>
+				text
+					.setPlaceholder("Enter the path to your template file")
+					.setValue(this.plugin.settings.templateFilePath)
+					.onChange(async (value) => {
+						this.plugin.settings.templateFilePath = value;
 						await this.plugin.saveSettings();
 					})
 			);
