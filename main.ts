@@ -9,6 +9,7 @@ import {
 import moment from "moment-jalaali";
 import { FolderSuggest } from "folderSuggester";
 import { FileSuggest } from "fileSuggester";
+import { isFileExist, openNote, copyNote } from "utils";
 
 interface PluginSettings {
 	dailyNotePath: string;
@@ -18,35 +19,6 @@ interface PluginSettings {
 const DEFAULT_SETTINGS: PluginSettings = {
 	dailyNotePath: "",
 	templateFilePath: "",
-};
-
-const isFileExist = (vault: Vault, path: string) => {
-	return vault.getAbstractFileByPath(path) !== null;
-};
-
-const openNote = async (app: App, path: string) => {
-	await app.workspace.openLinkText(path, "", true);
-};
-
-const createNewDailyNote = async (plugin: MyPlugin) => {
-	const todayJalali = moment().format("jYYYY-jMM-jDD");
-	const targetPath = `${plugin.settings.dailyNotePath}/${todayJalali}.md`;
-	if (isFileExist(plugin.app.vault, targetPath)) {
-		new Notice("File already exists");
-		openNote(plugin.app, targetPath);
-		return;
-	}
-
-	const templatePath = plugin.settings.templateFilePath;
-	if (!templatePath || !isFileExist(plugin.app.vault, templatePath)) {
-		new Notice("Template file does not exist");
-		return;
-	}
-
-	await plugin.app.vault.adapter.copy(templatePath, targetPath);
-
-	openNote(plugin.app, targetPath);
-	return;
 };
 
 export default class MyPlugin extends Plugin {
@@ -59,7 +31,7 @@ export default class MyPlugin extends Plugin {
 			"calendar-heart",
 			"Create new jalali daily note",
 			async (evt: MouseEvent) => {
-				await createNewDailyNote(this);
+				await this.createNewDailyNote();
 			}
 		);
 
@@ -67,7 +39,7 @@ export default class MyPlugin extends Plugin {
 			id: "create-new-jalali-daily-note",
 			name: "Create new jalali daily note",
 			callback: () => {
-				createNewDailyNote(this);
+				this.createNewDailyNote();
 			},
 		});
 
@@ -86,6 +58,28 @@ export default class MyPlugin extends Plugin {
 
 	async saveSettings() {
 		await this.saveData(this.settings);
+	}
+
+	async createNewDailyNote() {
+		const todayJalali = moment().format("jYYYY-jMM-jDD");
+		const targetPath = `${this.settings.dailyNotePath}/${todayJalali}.md`;
+
+		if (isFileExist(this.app.vault, targetPath)) {
+			new Notice("File already exists");
+			openNote(this.app, targetPath);
+			return;
+		}
+
+		const templatePath = this.settings.templateFilePath;
+		if (!templatePath || !isFileExist(this.app.vault, templatePath)) {
+			new Notice("Template file does not exist");
+			return;
+		}
+
+		await copyNote(this.app, templatePath, targetPath);
+
+		await openNote(this.app, targetPath);
+		return;
 	}
 }
 

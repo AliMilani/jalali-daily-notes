@@ -37,3 +37,15 @@ export function getFilesFromFolder(folder_str: string): Array<TFile> {
 
 	return files;
 }
+
+export const isFileExist = (vault: Vault, path: string) => {
+	return vault.getAbstractFileByPath(path) !== null;
+};
+
+export const openNote = async (app: App, path: string) => {
+	await app.workspace.openLinkText(path, "", true);
+};
+
+export const copyNote = async (app: App, src: string, dest: string) => {
+	await app.vault.adapter.copy(src, dest);
+};
