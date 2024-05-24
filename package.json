@@ -23,6 +23,7 @@
 		"typescript": "4.7.4"
 	},
 	"dependencies": {
+		"@popperjs/core": "^2.11.8",
 		"moment-jalaali": "^0.10.0"
 	}
 }

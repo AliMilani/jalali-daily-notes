@@ -1,16 +1,14 @@
 import {
 	App,
-	Editor,
-	MarkdownView,
-	Modal,
 	Notice,
 	Plugin,
 	PluginSettingTab,
 	Setting,
 	Vault,
 } from "obsidian";
-
 import moment from "moment-jalaali";
+import { FolderSuggest } from "folderSuggester";
+import { FileSuggest } from "fileSuggester";
 
 interface PluginSettings {
 	dailyNotePath: string;
@@ -21,27 +19,36 @@ const DEFAULT_SETTINGS: PluginSettings = {
 	dailyNotePath: "",
 	templateFilePath: "",
 };
+
+const isFileExist = (vault: Vault, path: string) => {
+	return vault.getAbstractFileByPath(path) !== null;
+};
+
+const openNote = async (app: App, path: string) => {
+	await app.workspace.openLinkText(path, "", true);
+};
+
 const createNewDailyNote = async (plugin: MyPlugin) => {
 	const todayJalali = moment().format("jYYYY-jMM-jDD");
 	const targetPath = `${plugin.settings.dailyNotePath}/${todayJalali}.md`;
-	if (plugin.app.vault.getAbstractFileByPath(targetPath)) {
+	if (isFileExist(plugin.app.vault, targetPath)) {
 		new Notice("File already exists");
+		openNote(plugin.app, targetPath);
 		return;
 	}
 
 	const templatePath = plugin.settings.templateFilePath;
-	if (
-		!templatePath ||
-		!plugin.app.vault.getAbstractFileByPath(templatePath)
-	) {
+	if (!templatePath || !isFileExist(plugin.app.vault, templatePath)) {
 		new Notice("Template file does not exist");
 		return;
 	}
 
 	await plugin.app.vault.adapter.copy(templatePath, targetPath);
-	plugin.app.workspace.openLinkText(targetPath, "", true);
+
+	openNote(plugin.app, targetPath);
 	return;
 };
+
 export default class MyPlugin extends Plugin {
 	settings: PluginSettings;
 
@@ -96,30 +103,30 @@ class defaultSettingTab extends PluginSettingTab {
 		containerEl.empty();
 
 		new Setting(containerEl)
-			.setName("daily note folder path")
+			.setName("Daily note folder path")
 			.setDesc("Enter the path to your daily notes directory")
-			.addText((text) =>
-				text
-					.setPlaceholder(
-						"Enter the path to your daily notes directory"
-					)
+			.addSearch((cb) => {
+				new FolderSuggest(cb.inputEl);
+				cb.setPlaceholder("Example: folder1/folder2")
 					.setValue(this.plugin.settings.dailyNotePath)
-					.onChange(async (value) => {
-						this.plugin.settings.dailyNotePath = value;
-						await this.plugin.saveSettings();
-					})
-			);
-		new Setting(containerEl)
-			.setName("template path")
+					.onChange((dailyNotePath) => {
+						this.plugin.settings.dailyNotePath = dailyNotePath;
+						this.plugin.saveSettings();
+					});
+			});
+
+		new Setting(this.containerEl)
+			.setName("Template path")
 			.setDesc("Enter template file path")
-			.addText((text) =>
-				text
-					.setPlaceholder("Enter the path to your template file")
+			.addSearch((cb) => {
+				new FileSuggest(cb.inputEl);
+				cb.setPlaceholder("Example: folder1/template_file")
 					.setValue(this.plugin.settings.templateFilePath)
-					.onChange(async (value) => {
-						this.plugin.settings.templateFilePath = value;
-						await this.plugin.saveSettings();
-					})
-			);
+					.onChange((templateFilePath) => {
+						this.plugin.settings.templateFilePath =
+							templateFilePath;
+						this.plugin.saveSettings();
+					});
+			});
 	}
 }
